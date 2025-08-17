@@ -8,17 +8,20 @@ import streamlit as st
 from datetime import datetime
 
 # -------------------------
-# Load Data
+# Loading Data with Spinner
 # -------------------------
+with st.spinner('Loading data and calculating metrics, please wait...'):
+    df = pd.read_excel("data/raw/Online_Retail.xlsx")
+    df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+    df['TotalPrice'] = df['Quantity'] * df['UnitPrice']
+    df = df[df['CustomerID'].notnull()]
+
+    # Reference date for recency calculation
+    reference_date = df['InvoiceDate'].max() + pd.Timedelta(days=1)
+
+st.success('Data loaded successfully!')
+
 st.title("Customer Segmentation Dashboard")
-
-df = pd.read_excel("data/raw/Online_Retail.xlsx")
-df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
-df['TotalPrice'] = df['Quantity'] * df['UnitPrice']
-df = df[df['CustomerID'].notnull()]
-
-# Reference date for recency calculation
-reference_date = df['InvoiceDate'].max() + pd.Timedelta(days=1)
 
 # -------------------------
 # Filters
@@ -42,24 +45,26 @@ filtered_df = df[(df['Country'].isin(selected_countries)) &
 # -------------------------
 # Build RFM Table
 # -------------------------
-rfm = filtered_df.groupby('CustomerID').agg({
-    'InvoiceDate': lambda x: (reference_date - x.max()).days,
-    'InvoiceNo': 'nunique',
-    'TotalPrice': 'sum'
-})
-rfm.rename(columns={
-    'InvoiceDate': 'Recency',
-    'InvoiceNo': 'Frequency',
-    'TotalPrice': 'Monetary'
-}, inplace=True)
+with st.spinner('Calculating RFM table...'):
+    rfm = filtered_df.groupby('CustomerID').agg({
+        'InvoiceDate': lambda x: (reference_date - x.max()).days,
+        'InvoiceNo': 'nunique',
+        'TotalPrice': 'sum'
+    })
+    rfm.rename(columns={
+        'InvoiceDate': 'Recency',
+        'InvoiceNo': 'Frequency',
+        'TotalPrice': 'Monetary'
+    }, inplace=True)
 
 # -------------------------
 # RFM Scoring
 # -------------------------
-rfm['R_Score'] = pd.qcut(rfm['Recency'], 4, labels=[4,3,2,1])
-rfm['F_Score'] = pd.qcut(rfm['Frequency'].rank(method='first'), 4, labels=[1,2,3,4])
-rfm['M_Score'] = pd.qcut(rfm['Monetary'], 4, labels=[1,2,3,4])
-rfm['RFM_Score'] = rfm['R_Score'].astype(str) + rfm['F_Score'].astype(str) + rfm['M_Score'].astype(str)
+with st.spinner('Scoring RFM and segmenting customers...'):
+    rfm['R_Score'] = pd.qcut(rfm['Recency'], 4, labels=[4,3,2,1])
+    rfm['F_Score'] = pd.qcut(rfm['Frequency'].rank(method='first'), 4, labels=[1,2,3,4])
+    rfm['M_Score'] = pd.qcut(rfm['Monetary'], 4, labels=[1,2,3,4])
+    rfm['RFM_Score'] = rfm['R_Score'].astype(str) + rfm['F_Score'].astype(str) + rfm['M_Score'].astype(str)
 
 # -------------------------
 # Segmentation
