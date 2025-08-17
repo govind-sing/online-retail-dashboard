@@ -1,0 +1,41 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+cust/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables / secrets
+.env
+*.env
+
+# Logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# Mac specific
+*.DS_Store
+
+# Backup files
+*.bak
+*.swp
+*~
+
+# Large datasets (optional if you don't want to upload raw data)
+*.csv
+*.xlsx
